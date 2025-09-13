@@ -1,0 +1,5 @@
+{
+  "name": "ThermoVis: Far-From-Equilibrium Thermodynamics Visualizer",
+  "description": "An interactive 3D application that visualizes the principles of far-from-equilibrium thermodynamics using a particle simulation. Users can control heat input, observe emergent patterns, and explore concepts like temperature gradients and entropy production with AI-powered explanations.",
+  "requestFramePermissions": []
+}
