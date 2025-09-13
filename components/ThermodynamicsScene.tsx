@@ -1,35 +1,32 @@
 import React, { useRef, useMemo, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { OrbitControls, Box } from '@react-three/drei';
 import * as THREE from 'three';
 import type { SimulationParams, SimulationData } from '../types';
+import { Effects } from './Effects';
+import { Starfield } from './Starfield';
+import { Lighting } from './Lighting';
 
-// FIX: Removed `extend(THREE)` call. In modern @react-three/fiber, it's unnecessary 
-// and causes errors as THREE elements are extended by default.
-
-const BOX_SIZE = 5;
-const SLICES = 10; // For temperature gradient calculation
+const BOX_SIZE = 6;
+const SLICES = 10;
 
 interface Particle {
   position: THREE.Vector3;
   velocity: THREE.Vector3;
+  size: number;
 }
 
 const tempColor = new THREE.Color();
 const colorScale = (t: number) => {
-    // A purple to red/orange gradient that fits the new theme
-    return tempColor.setHSL(0.8 - t * 0.8, 0.9, 0.6);
+    return tempColor.setHSL(0.7 - t * 0.7, 1.0, 0.6);
 };
 
 const Particles: React.FC<{ params: SimulationParams; onDataUpdate: (data: SimulationData) => void; }> = ({ params, onDataUpdate }) => {
   const { particleCount, heat, isPaused } = params;
   const meshRef = useRef<THREE.InstancedMesh>(null!);
   const particlesRef = useRef<Particle[]>([]);
-
-  // Memoize dummy object to avoid re-creation
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  // Initialize particles
   useEffect(() => {
     particlesRef.current = Array.from({ length: particleCount }, () => ({
       position: new THREE.Vector3(
@@ -42,67 +39,57 @@ const Particles: React.FC<{ params: SimulationParams; onDataUpdate: (data: Simul
         (Math.random() - 0.5) * 0.1,
         (Math.random() - 0.5) * 0.1
       ),
+      size: Math.random() * 0.5 + 0.5
     }));
     if (meshRef.current) {
         meshRef.current.count = particleCount;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [particleCount]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (isPaused || !meshRef.current) return;
 
     const particles = particlesRef.current;
     const halfBox = BOX_SIZE / 2;
-    let totalKineticEnergy = 0;
     const sliceEnergies = Array(SLICES).fill(0);
     const sliceCounts = Array(SLICES).fill(0);
-
     let energyIn = 0;
     let energyOut = 0;
 
     particles.forEach((p, i) => {
       p.position.addScaledVector(p.velocity, delta * 60);
 
-      // Wall collisions and temperature effects
       if (Math.abs(p.position.x) > halfBox) {
         p.velocity.x *= -1;
         p.position.x = Math.sign(p.position.x) * halfBox;
 
-        if (p.position.x > 0) { // Hot wall (right)
+        if (p.position.x > 0) {
           const oldSpeed = p.velocity.length();
-          p.velocity.x += Math.sign(p.velocity.x) * heat;
+          p.velocity.x += Math.sign(p.velocity.x) * heat * 0.1;
+          p.velocity.multiplyScalar(1.01);
           energyIn += p.velocity.lengthSq() - oldSpeed * oldSpeed;
-        } else { // Cold wall (left)
+        } else {
           const oldSpeed = p.velocity.length();
-          p.velocity.multiplyScalar(0.95); // Damping
+          p.velocity.multiplyScalar(0.9);
           energyOut += oldSpeed * oldSpeed - p.velocity.lengthSq();
         }
       }
-      if (Math.abs(p.position.y) > halfBox) {
-        p.velocity.y *= -1;
-        p.position.y = Math.sign(p.position.y) * halfBox;
-      }
-      if (Math.abs(p.position.z) > halfBox) {
-        p.velocity.z *= -1;
-        p.position.z = Math.sign(p.position.z) * halfBox;
-      }
+      if (Math.abs(p.position.y) > halfBox) p.velocity.y *= -1;
+      if (Math.abs(p.position.z) > halfBox) p.velocity.z *= -1;
       
-      const kineticEnergy = p.velocity.lengthSq();
-      totalKineticEnergy += kineticEnergy;
-
-      // Update instance
       dummy.position.copy(p.position);
+      const speed = p.velocity.length();
+      const scale = p.size * (1 + speed * 2);
+      dummy.scale.set(scale, scale, scale);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
 
-      const normalizedSpeed = Math.min(p.velocity.length() * 5, 1.0);
+      const normalizedSpeed = Math.min(speed * 5, 1.0);
       meshRef.current.setColorAt(i, colorScale(normalizedSpeed));
 
-      // Data calculation
       const sliceIndex = Math.floor(((p.position.x + halfBox) / BOX_SIZE) * SLICES);
       if (sliceIndex >= 0 && sliceIndex < SLICES) {
-        sliceEnergies[sliceIndex] += kineticEnergy;
+        sliceEnergies[sliceIndex] += speed * speed;
         sliceCounts[sliceIndex]++;
       }
     });
@@ -112,7 +99,6 @@ const Particles: React.FC<{ params: SimulationParams; onDataUpdate: (data: Simul
       meshRef.current.instanceColor.needsUpdate = true;
     }
     
-    // Update data for parent component
     const temperatureGradient = sliceEnergies.map((energy, i) => 
         sliceCounts[i] > 0 ? energy / sliceCounts[i] : 0
     );
@@ -133,39 +119,43 @@ const Particles: React.FC<{ params: SimulationParams; onDataUpdate: (data: Simul
     });
   });
 
+  const particleTexture = useLoader(THREE.TextureLoader, '/dot.png');
+
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, particleCount]}>
-      <sphereGeometry args={[0.05, 16, 16]} />
-      <meshStandardMaterial emissive="#fff" emissiveIntensity={0.5}/>
+      <planeGeometry args={[0.1, 0.1]} />
+      <meshStandardMaterial map={particleTexture} blending={THREE.AdditiveBlending} depthWrite={false} transparent vertexColors />
     </instancedMesh>
   );
 };
 
+const HeatSource: React.FC = () => {
+    const meshRef = useRef<THREE.Mesh>(null!);
+    useFrame(({clock}) => {
+        if(!meshRef.current) return;
+        const mat = meshRef.current.material as THREE.MeshBasicMaterial;
+        mat.opacity = (Math.sin(clock.getElapsedTime() * 2) * 0.1 + 0.2);
+    })
+    return (
+        <mesh ref={meshRef} position={[BOX_SIZE / 2 + 0.1, 0, 0]}>
+            <planeGeometry args={[0.1, BOX_SIZE]} />
+            <meshBasicMaterial color="red" transparent side={THREE.DoubleSide} emissive="red" emissiveIntensity={2}/>
+        </mesh>
+    )
+}
 
 export const ThermodynamicsScene: React.FC<{ params: SimulationParams; onDataUpdate: (data: SimulationData) => void; }> = ({ params, onDataUpdate }) => {
   return (
-    <Canvas camera={{ position: [0, 0, 10], fov: 50 }}>
-      <ambientLight intensity={0.2} />
-      <pointLight position={[10, 10, 10]} />
-
+    <Canvas camera={{ position: [0, 0, 12], fov: 60 }} gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}>
+      <Starfield />
+      <Lighting />
       <Particles params={params} onDataUpdate={onDataUpdate} />
-
-      <lineSegments>
-        <edgesGeometry args={[new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE)]} />
-        <lineBasicMaterial color="#59453c" />
-      </lineSegments>
-
-      {/* Temperature Wall Indicators */}
-      <mesh position={[BOX_SIZE / 2 + 0.1, 0, 0]}>
-        <planeGeometry args={[BOX_SIZE, BOX_SIZE]} />
-        <meshBasicMaterial color="#7c1f23" transparent opacity={0.2} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[-BOX_SIZE / 2 - 0.1, 0, 0]}>
-        <planeGeometry args={[BOX_SIZE, BOX_SIZE]} />
-        <meshBasicMaterial color="#59453c" transparent opacity={0.2} side={THREE.DoubleSide} />
-      </mesh>
-
-      <OrbitControls />
+      <Box args={[BOX_SIZE, BOX_SIZE, BOX_SIZE]} >
+        <meshStandardMaterial color="#555" transparent opacity={0.15} />
+      </Box>
+      <HeatSource />
+      <OrbitControls enableDamping dampingFactor={0.1} />
+      <Effects />
     </Canvas>
   );
 };

@@ -4,17 +4,20 @@ import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
+import { Effects } from './Effects';
+import { Starfield } from './Starfield';
 
-const PARTICLE_COUNT = 200; // Grid will be PARTICLE_COUNT x PARTICLE_COUNT
-const GRID_SIZE = 20;
+const PARTICLE_COUNT = 300; // Increased particle count
+const GRID_SIZE = 25;
 
 const vertexShader = `
   uniform float u_time;
   uniform float u_amplitude;
   
   varying vec3 vColor;
+  varying float vAlpha;
 
-  // Simplex 3D Noise by Ashima Arts
+  // Simplex 3D Noise by Ashima Arts (unchanged)
   vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
   vec4 taylorInvSqrt(vec4 r){return 1.79284291400159 - 0.85373472095314 * r;}
   float snoise(vec3 v){ 
@@ -57,38 +60,70 @@ const vertexShader = `
     return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
   }
 
+  // New color ramp
+  vec3 colorRamp(float t) {
+    vec3 c1 = vec3(0.0, 0.0, 0.0); // Black for lowest velocity
+    vec3 c2 = vec3(0.2, 0.0, 0.4); // Deep purple
+    vec3 c3 = vec3(0.8, 0.1, 0.1); // Red/Orange
+    vec3 c4 = vec3(1.0, 0.8, 0.4); // Bright Yellow
+    vec3 c5 = vec3(1.0, 1.0, 1.0); // White
+
+    t = smoothstep(0.0, 1.0, t);
+
+    vec3 color = mix(c1, c2, smoothstep(-1.0, -0.5, t) - smoothstep(-0.5, 0.0, t));
+    color = mix(color, c3, smoothstep(-0.5, 0.0, t) - smoothstep(0.0, 0.5, t));
+    color = mix(color, c4, smoothstep(0.0, 0.5, t) - smoothstep(0.5, 1.0, t));
+    color = mix(color, c5, smoothstep(0.5, 1.0, t));
+
+    // A more direct multi-mix approach
+    t = (t + 1.0) / 2.0; // remap t to 0-1
+    vec3 finalColor = mix(c1, c2, smoothstep(0.0, 0.25, t));
+    finalColor = mix(finalColor, c3, smoothstep(0.25, 0.5, t));
+    finalColor = mix(finalColor, c4, smoothstep(0.5, 0.75, t));
+    finalColor = mix(finalColor, c5, smoothstep(0.75, 1.0, t));
+
+    return finalColor;
+  }
+
   void main() {
     vec3 pos = position;
     float time = u_time * 0.1;
     float noise_freq = 1.5;
 
-    // Calculate noise at current time and a moment before to find velocity
     float current_noise = snoise(vec3(pos.x * noise_freq, pos.z * noise_freq, time));
     float prev_noise = snoise(vec3(pos.x * noise_freq, pos.z * noise_freq, time - 0.01));
     
-    // Y-position is based on current noise
     pos.y = u_amplitude * current_noise;
+    float velocity = (current_noise - prev_noise) * 50.0;
 
-    // Velocity is the change in position (noise)
-    float velocity = (current_noise - prev_noise) * 50.0; // Scaled for color mapping
+    // Fade out particles at the edges
+    float edgeFade = 1.0 - smoothstep(0.9, 1.0, length(position.xz) / (0.5 * ${GRID_SIZE.toFixed(1)}));
+    vAlpha = edgeFade;
 
-    // Color mapping
-    vec3 hotColor = vec3(0.65, 0.54, 0.44);    // brand-tan
-    vec3 coolColor = vec3(0.21, 0.13, 0.13);  // brand-d-brown
-    float colorMix = smoothstep(-1.0, 1.0, velocity);
-    vColor = mix(coolColor, hotColor, colorMix);
+    vColor = colorRamp(velocity);
 
-    // Final position and size
-    vec4 modelViewPosition = modelViewMatrix * vec4(pos, 1.0);
-    gl_Position = projectionMatrix * modelViewPosition;
-    gl_PointSize = 2.0;
+    vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+
+    // Vary particle size based on velocity and distance
+    float baseSize = 15.0;
+    float sizeVelocityFactor = 1.0 + abs(velocity) * 2.0;
+    gl_PointSize = baseSize * sizeVelocityFactor * (1.0 / -mvPosition.z);
   }
 `;
 
 const fragmentShader = `
   varying vec3 vColor;
+  varying float vAlpha;
+
   void main() {
-    gl_FragColor = vec4(vColor, 1.0);
+    // Render particles as soft-edged circles
+    float dist = length(gl_PointCoord - vec2(0.5));
+    float alpha = 1.0 - smoothstep(0.45, 0.5, dist);
+
+    if (alpha < 0.01) discard;
+
+    gl_FragColor = vec4(vColor, alpha * vAlpha);
   }
 `;
 
@@ -102,9 +137,9 @@ const ConvectionSystem: React.FC = () => {
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       for (let j = 0; j < PARTICLE_COUNT; j++) {
         const index = (i * PARTICLE_COUNT + j) * 3;
-        positions[index] = (i / PARTICLE_COUNT - 0.5) * GRID_SIZE; // x
-        positions[index + 1] = 0; // y
-        positions[index + 2] = (j / PARTICLE_COUNT - 0.5) * GRID_SIZE; // z
+        positions[index] = (i / PARTICLE_COUNT - 0.5) * GRID_SIZE;
+        positions[index + 1] = 0;
+        positions[index + 2] = (j / PARTICLE_COUNT - 0.5) * GRID_SIZE;
       }
     }
     
@@ -116,7 +151,7 @@ const ConvectionSystem: React.FC = () => {
   const material = useMemo(() => new THREE.ShaderMaterial({
     uniforms: {
       u_time: { value: 0.0 },
-      u_amplitude: { value: 1.5 },
+      u_amplitude: { value: 2.5 }, // Increased amplitude for more dynamism
     },
     vertexShader,
     fragmentShader,
@@ -134,10 +169,18 @@ const ConvectionSystem: React.FC = () => {
 
 export const ConvectionCellsScene: React.FC = () => {
   return (
-    <Canvas camera={{ position: [0, 10, 15], fov: 60 }}>
-      <color attach="background" args={['#0d0d0d']} />
+    <Canvas
+      camera={{ position: [0, 15, 30], fov: 60 }}
+      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
+    >
+      <Starfield />
       <ConvectionSystem />
-      <OrbitControls />
+      <OrbitControls enableDamping dampingFactor={0.1} />
+      <Effects />
+      <mesh>
+        <boxGeometry args={[GRID_SIZE + 1, 8, GRID_SIZE + 1]} />
+        <meshBasicMaterial color="white" wireframe opacity={0.1} transparent />
+      </mesh>
     </Canvas>
   );
 };
