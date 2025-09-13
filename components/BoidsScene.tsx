@@ -2,13 +2,16 @@
 
 import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Box } from '@react-three/drei';
 import * as THREE from 'three';
+import { Effects } from './Effects';
+import { Starfield } from './Starfield';
+import { Lighting } from './Lighting';
 
 const BOID_COUNT = 500;
-const BOUNDS = 20;
+const BOUNDS = 25; // Increased bounds
 
-const MAX_SPEED = 0.2;
+const MAX_SPEED = 0.25;
 const MAX_FORCE = 0.01;
 
 const COHESION_WEIGHT = 1.0;
@@ -18,12 +21,13 @@ const PREDATOR_WEIGHT = 2.5;
 
 const PERCEPTION_RADIUS = 3;
 const SEPARATION_DISTANCE = 1.0;
-const PREDATOR_RADIUS = 4;
+const PREDATOR_RADIUS = 5;
 
 class Boid {
   position: THREE.Vector3;
   velocity: THREE.Vector3;
   acceleration: THREE.Vector3;
+  color: THREE.Color;
 
   constructor() {
     this.position = new THREE.Vector3(
@@ -37,6 +41,7 @@ class Boid {
       (Math.random() - 0.5) * 2
     ).setLength(Math.random() * MAX_SPEED);
     this.acceleration = new THREE.Vector3();
+    this.color = new THREE.Color().setHSL(0.5 + Math.random() * 0.2, 0.7, 0.5);
   }
 
   applyForce(force: THREE.Vector3) {
@@ -58,18 +63,16 @@ class Boid {
     let total = 0;
 
     for (const other of boids) {
+      if (other === this) continue;
       const d = this.position.distanceTo(other.position);
       if (d > 0 && d < PERCEPTION_RADIUS) {
-        // Separation
         if (d < SEPARATION_DISTANCE) {
           const diff = new THREE.Vector3().subVectors(this.position, other.position);
           diff.normalize();
-          diff.divideScalar(d); // Weight by distance
+          diff.divideScalar(d);
           separation.add(diff);
         }
-        // Alignment
         alignment.add(other.velocity);
-        // Cohesion
         cohesion.add(other.position);
         total++;
       }
@@ -91,7 +94,6 @@ class Boid {
         this.applyForce(separationSteer.multiplyScalar(SEPARATION_WEIGHT));
     }
     
-    // Predator avoidance
     const dPredator = this.position.distanceTo(predatorPosition);
     if (dPredator < PREDATOR_RADIUS) {
       const flee = new THREE.Vector3().subVectors(this.position, predatorPosition);
@@ -126,18 +128,25 @@ const BoidsSystem: React.FC = () => {
   const boids = useMemo(() => Array.from({ length: BOID_COUNT }, () => new Boid()), []);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   
-  const { viewport, pointer } = useThree();
+  const { viewport, pointer, camera } = useThree();
   const targetPredatorPosition = useMemo(() => new THREE.Vector3(), []);
+
+  useEffect(() => {
+    if (!meshRef.current) return;
+    boids.forEach((boid, i) => {
+      meshRef.current!.setColorAt(i, boid.color);
+    });
+    meshRef.current.instanceColor!.needsUpdate = true;
+  }, [boids]);
 
   useFrame((state, delta) => {
     if (!meshRef.current || !predatorRef.current) return;
     
-    // Update predator position smoothly
-    targetPredatorPosition.set(
-      (pointer.x * viewport.width) / 2,
-      (pointer.y * viewport.height) / 2,
-      0
-    );
+    const target = new THREE.Vector3(pointer.x, pointer.y, 0.5);
+    target.unproject(camera);
+    target.sub(camera.position).normalize();
+    const distance = -camera.position.z / target.z;
+    targetPredatorPosition.copy(camera.position).add(target.multiplyScalar(distance));
     predatorRef.current.position.lerp(targetPredatorPosition, 0.1);
 
     boids.forEach(boid => {
@@ -157,13 +166,13 @@ const BoidsSystem: React.FC = () => {
 
   return (
     <>
-      <instancedMesh ref={meshRef} args={[undefined, undefined, BOID_COUNT]}>
-        <coneGeometry args={[0.1, 0.5, 8]} />
-        <meshStandardMaterial color="#a78a70" />
+      <instancedMesh ref={meshRef} args={[undefined, undefined, BOID_COUNT]} castShadow>
+        <coneGeometry args={[0.1, 0.6, 8]} />
+        <meshStandardMaterial vertexColors metalness={0.8} roughness={0.3} />
       </instancedMesh>
-      <mesh ref={predatorRef}>
-        <sphereGeometry args={[0.5, 32, 32]} />
-        <meshStandardMaterial color="#7c1f23" emissive="#7c1f23" emissiveIntensity={0.5} />
+      <mesh ref={predatorRef} castShadow>
+        <sphereGeometry args={[0.7, 32, 32]} />
+        <meshStandardMaterial color="red" emissive="red" emissiveIntensity={2} roughness={0.1} />
       </mesh>
     </>
   );
@@ -171,15 +180,23 @@ const BoidsSystem: React.FC = () => {
 
 export const BoidsScene: React.FC = () => {
   return (
-    <Canvas camera={{ position: [0, 0, 30], fov: 75 }}>
-      <ambientLight intensity={0.5} />
-      <pointLight position={[0, 0, 50]} intensity={1} />
+    <Canvas
+      shadows={{ type: THREE.PCFSoftShadowMap }}
+      camera={{ position: [0, 0, 40], fov: 75 }}
+      gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
+    >
+      <Starfield />
+      <Lighting />
       <BoidsSystem />
-      <OrbitControls enabled={false} />
-       <mesh>
-        <boxGeometry args={[BOUNDS, BOUNDS, BOUNDS]} />
-        <meshBasicMaterial wireframe color="#59453c" />
+      <OrbitControls enableDamping dampingFactor={0.1} />
+      <Box args={[BOUNDS, BOUNDS, BOUNDS]} >
+        <meshStandardMaterial color="#333" transparent opacity={0.1} wireframe />
+      </Box>
+      <mesh rotation-x={-Math.PI / 2} position-y={-BOUNDS/2} receiveShadow>
+        <planeGeometry args={[BOUNDS, BOUNDS]} />
+        <meshStandardMaterial color="#111" metalness={0.5} roughness={0.8} />
       </mesh>
+      <Effects />
     </Canvas>
   );
 };
