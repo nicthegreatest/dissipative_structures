@@ -71,8 +71,14 @@ const displayFragmentShader = `
     float v = state.g;
 
     float val = u - v;
-    vec3 color = mix(vec3(0.1, 0.0, 0.2), vec3(1.0, 0.9, 0.2), smoothstep(0.0, 0.3, val));
-    color = mix(color, vec3(0.0, 0.2, 0.9), smoothstep(0.3, 0.4, val));
+    
+    // New color palette
+    vec3 baseColor = vec3(0.21, 0.13, 0.13);     // brand-d-brown
+    vec3 accent1 = vec3(0.486, 0.12, 0.137);   // brand-red
+    vec3 accent2 = vec3(0.65, 0.54, 0.44);     // brand-tan
+    
+    vec3 color = mix(baseColor, accent1, smoothstep(0.0, 0.3, val));
+    color = mix(color, accent2, smoothstep(0.3, 0.4, val));
 
     gl_FragColor = vec4(color, 1.0);
   }

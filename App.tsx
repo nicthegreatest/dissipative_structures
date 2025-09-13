@@ -71,40 +71,40 @@ const App: React.FC = () => {
     })), [simulationData.temperatureGradient]);
   
   const VisualizationSelector: React.FC = () => (
-    <div className="p-4 bg-gray-900 rounded-lg">
-      <h2 className="text-lg font-semibold text-cyan-400 mb-2">Select Visualization</h2>
+    <div className="p-4 bg-brand-d-brown rounded-lg">
+      <h2 className="text-lg font-semibold text-brand-red mb-2">Select Visualization</h2>
       <div className="grid grid-cols-2 gap-2">
         <button 
           onClick={() => setVisualization('thermodynamics')}
-          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'thermodynamics' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}
+          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'thermodynamics' ? 'bg-brand-red text-white' : 'bg-brand-m-brown hover:bg-brand-m-brown/80 text-brand-tan'}`}
           aria-pressed={visualization === 'thermodynamics'}
         >
           Thermodynamics
         </button>
         <button 
           onClick={() => setVisualization('reaction-diffusion')}
-          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'reaction-diffusion' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}
+          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'reaction-diffusion' ? 'bg-brand-red text-white' : 'bg-brand-m-brown hover:bg-brand-m-brown/80 text-brand-tan'}`}
           aria-pressed={visualization === 'reaction-diffusion'}
         >
           Reaction-Diffusion
         </button>
          <button 
           onClick={() => setVisualization('bz-reaction')}
-          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'bz-reaction' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}
+          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'bz-reaction' ? 'bg-brand-red text-white' : 'bg-brand-m-brown hover:bg-brand-m-brown/80 text-brand-tan'}`}
           aria-pressed={visualization === 'bz-reaction'}
         >
           BZ Reaction
         </button>
         <button 
           onClick={() => setVisualization('boids')}
-          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'boids' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}
+          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'boids' ? 'bg-brand-red text-white' : 'bg-brand-m-brown hover:bg-brand-m-brown/80 text-brand-tan'}`}
           aria-pressed={visualization === 'boids'}
         >
           Boids Swarm
         </button>
          <button 
           onClick={() => setVisualization('convection-cells')}
-          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'convection-cells' ? 'bg-cyan-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300'}`}
+          className={`font-bold py-2 px-4 rounded-lg transition-colors ${visualization === 'convection-cells' ? 'bg-brand-red text-white' : 'bg-brand-m-brown hover:bg-brand-m-brown/80 text-brand-tan'}`}
           aria-pressed={visualization === 'convection-cells'}
         >
           Convection Cells
@@ -134,28 +134,28 @@ const App: React.FC = () => {
     switch(visualization) {
         case 'thermodynamics':
             return (
-                <div className="bg-gray-900 p-4 rounded-lg flex-grow flex flex-col">
-                    <h2 className="text-lg font-semibold mb-2 text-cyan-400">System Data</h2>
+                <div className="bg-brand-d-brown p-4 rounded-lg flex-grow flex flex-col">
+                    <h2 className="text-lg font-semibold mb-2 text-brand-red">System Data</h2>
                     <div className="grid grid-cols-2 gap-4 mb-4 text-center">
-                        <div className="bg-gray-800 p-3 rounded-md">
-                            <p className="text-xs text-gray-400">Entropy Production</p>
-                            <p className="text-xl font-mono text-fuchsia-400">{simulationData.entropyProduction.toFixed(4)}</p>
+                        <div className="bg-brand-m-brown p-3 rounded-md">
+                            <p className="text-xs text-brand-tan/80">Entropy Production</p>
+                            <p className="text-xl font-mono text-brand-red">{simulationData.entropyProduction.toFixed(4)}</p>
                         </div>
-                        <div className="bg-gray-800 p-3 rounded-md">
-                            <p className="text-xs text-gray-400">System State</p>
-                            <p className="text-lg font-semibold text-teal-400">{simulationData.systemState}</p>
+                        <div className="bg-brand-m-brown p-3 rounded-md">
+                            <p className="text-xs text-brand-tan/80">System State</p>
+                            <p className="text-lg font-semibold text-brand-red">{simulationData.systemState}</p>
                         </div>
                     </div>
-                    <h3 className="text-md font-semibold mb-2 text-gray-300">Temperature Gradient</h3>
+                    <h3 className="text-md font-semibold mb-2 text-brand-tan">Temperature Gradient</h3>
                     <div className="w-full h-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#4a5568" />
-                                <XAxis dataKey="name" tick={{ fill: '#a0aec0' }} fontSize={10} />
-                                <YAxis tick={{ fill: '#a0aec0' }} fontSize={10} domain={['dataMin', 'dataMax']} />
-                                <Tooltip contentStyle={{ backgroundColor: '#2d3748', border: 'none' }} labelStyle={{ color: '#e2e8f0' }} />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#59453c" />
+                                <XAxis dataKey="name" tick={{ fill: '#a78a70' }} fontSize={10} />
+                                <YAxis tick={{ fill: '#a78a70' }} fontSize={10} domain={['dataMin', 'dataMax']} />
+                                <Tooltip contentStyle={{ backgroundColor: '#362222', border: 'none' }} labelStyle={{ color: '#a78a70' }} />
                                 <Legend wrapperStyle={{fontSize: "12px"}}/>
-                                <Line type="monotone" dataKey="temperature" stroke="#2dd4bf" strokeWidth={2} dot={false} />
+                                <Line type="monotone" dataKey="temperature" stroke="#7c1f23" strokeWidth={2} dot={false} />
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
@@ -163,10 +163,10 @@ const App: React.FC = () => {
             );
         case 'reaction-diffusion':
              return (
-                <div className="bg-gray-900 p-4 rounded-lg flex-grow flex flex-col text-gray-300 space-y-3">
-                    <h2 className="text-lg font-semibold text-cyan-400">About Reaction-Diffusion</h2>
+                <div className="bg-brand-d-brown p-4 rounded-lg flex-grow flex flex-col text-brand-tan space-y-3">
+                    <h2 className="text-lg font-semibold text-brand-red">About Reaction-Diffusion</h2>
                     <p className="text-sm">
-                    This simulates a <a href="https://en.wikipedia.org/wiki/Turing_pattern" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">Turing Pattern</a> using the Gray-Scott model. Two virtual chemicals react and diffuse, creating complex, self-organizing patterns.
+                    This simulates a <a href="https://en.wikipedia.org/wiki/Turing_pattern" target="_blank" rel="noopener noreferrer" className="text-brand-red hover:underline">Turing Pattern</a> using the Gray-Scott model. Two virtual chemicals react and diffuse, creating complex, self-organizing patterns.
                     </p>
                     <p className="text-sm">
                     By adjusting the 'feed' and 'kill' rates, you can discover a wide variety of life-like structures, similar to those found on animal coats or sea shells.
@@ -175,8 +175,8 @@ const App: React.FC = () => {
             );
         case 'bz-reaction':
             return (
-                <div className="bg-gray-900 p-4 rounded-lg flex-grow flex flex-col text-gray-300 space-y-3">
-                    <h2 className="text-lg font-semibold text-cyan-400">About BZ Reaction</h2>
+                <div className="bg-brand-d-brown p-4 rounded-lg flex-grow flex flex-col text-brand-tan space-y-3">
+                    <h2 className="text-lg font-semibold text-brand-red">About BZ Reaction</h2>
                     <p className="text-sm">
                         The Belousov-Zhabotinsky (BZ) reaction is a classic example of a non-equilibrium chemical oscillator, often called a "chemical clock."
                     </p>
@@ -187,8 +187,8 @@ const App: React.FC = () => {
             );
         case 'boids':
             return (
-                <div className="bg-gray-900 p-4 rounded-lg flex-grow flex flex-col text-gray-300 space-y-3">
-                    <h2 className="text-lg font-semibold text-cyan-400">About Boids</h2>
+                <div className="bg-brand-d-brown p-4 rounded-lg flex-grow flex flex-col text-brand-tan space-y-3">
+                    <h2 className="text-lg font-semibold text-brand-red">About Boids</h2>
                     <p className="text-sm">
                         This simulation models the flocking behavior of birds using Craig Reynolds' Boids algorithm. Each "boid" follows three simple rules, leading to complex, life-like swarm intelligence.
                     </p>
@@ -204,8 +204,8 @@ const App: React.FC = () => {
             );
         case 'convection-cells':
             return (
-                <div className="bg-gray-900 p-4 rounded-lg flex-grow flex flex-col text-gray-300 space-y-3">
-                    <h2 className="text-lg font-semibold text-cyan-400">About Convection Cells</h2>
+                <div className="bg-brand-d-brown p-4 rounded-lg flex-grow flex flex-col text-brand-tan space-y-3">
+                    <h2 className="text-lg font-semibold text-brand-red">About Convection Cells</h2>
                     <p className="text-sm">
                         This simulation visualizes Rayleigh-Bénard convection cells. When a fluid is heated from below, it organizes itself into a regular pattern of hexagonal cells to efficiently transport heat upwards.
                     </p>
@@ -220,15 +220,15 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-900 text-gray-200 min-h-screen font-sans flex flex-col lg:flex-row">
+    <div className="bg-brand-black text-brand-tan min-h-screen font-sans flex flex-col lg:flex-row">
       <div className="flex-grow relative h-[50vh] lg:h-screen">
         {renderVisualization()}
       </div>
 
-      <div className="w-full lg:w-96 bg-gray-800 p-4 shadow-2xl flex flex-col space-y-4 overflow-y-auto">
+      <div className="w-full lg:w-96 bg-brand-d-brown p-4 shadow-2xl flex flex-col space-y-4 overflow-y-auto">
         <header className="text-center">
-          <h1 className="text-2xl font-bold text-cyan-400">ThermoVis</h1>
-          <p className="text-sm text-gray-400">Far-From-Equilibrium Systems</p>
+          <h1 className="text-2xl font-bold text-brand-red">ThermoVis</h1>
+          <p className="text-sm text-brand-tan/80">Far-From-Equilibrium Systems</p>
         </header>
 
         <VisualizationSelector />

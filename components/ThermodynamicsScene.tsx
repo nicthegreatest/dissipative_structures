@@ -17,7 +17,8 @@ interface Particle {
 
 const tempColor = new THREE.Color();
 const colorScale = (t: number) => {
-    return tempColor.setHSL(0.7 - t * 0.7, 1.0, 0.5); // Blue (cold) to Red (hot)
+    // A purple to red/orange gradient that fits the new theme
+    return tempColor.setHSL(0.8 - t * 0.8, 0.9, 0.6);
 };
 
 const Particles: React.FC<{ params: SimulationParams; onDataUpdate: (data: SimulationData) => void; }> = ({ params, onDataUpdate }) => {
@@ -151,17 +152,17 @@ export const ThermodynamicsScene: React.FC<{ params: SimulationParams; onDataUpd
 
       <lineSegments>
         <edgesGeometry args={[new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE)]} />
-        <lineBasicMaterial color="#4a5568" />
+        <lineBasicMaterial color="#59453c" />
       </lineSegments>
 
       {/* Temperature Wall Indicators */}
       <mesh position={[BOX_SIZE / 2 + 0.1, 0, 0]}>
         <planeGeometry args={[BOX_SIZE, BOX_SIZE]} />
-        <meshBasicMaterial color="#ff6b6b" transparent opacity={0.2} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#7c1f23" transparent opacity={0.2} side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[-BOX_SIZE / 2 - 0.1, 0, 0]}>
         <planeGeometry args={[BOX_SIZE, BOX_SIZE]} />
-        <meshBasicMaterial color="#4db6ac" transparent opacity={0.2} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#59453c" transparent opacity={0.2} side={THREE.DoubleSide} />
       </mesh>
 
       <OrbitControls />

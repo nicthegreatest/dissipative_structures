@@ -71,7 +71,12 @@ const displayFragmentShader = `
     float u = state.r;
     float v = state.g;
     
-    vec3 color = vec3(0.1, 0.1, 0.2) + vec3(u * 0.5, v, u * 0.8);
+    // New color palette
+    vec3 baseColor = vec3(0.05, 0.05, 0.05);     // brand-black
+    vec3 accent1 = vec3(0.486, 0.12, 0.137);   // brand-red
+    vec3 accent2 = vec3(0.65, 0.54, 0.44);     // brand-tan
+
+    vec3 color = baseColor + accent1 * v * 1.2 + accent2 * u * 0.5;
     
     gl_FragColor = vec4(color, 1.0);
   }

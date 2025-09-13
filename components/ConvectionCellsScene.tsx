@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -72,8 +73,8 @@ const vertexShader = `
     float velocity = (current_noise - prev_noise) * 50.0; // Scaled for color mapping
 
     // Color mapping
-    vec3 hotColor = vec3(1.0, 1.0, 0.6); // Bright yellow
-    vec3 coolColor = vec3(0.2, 0.1, 0.5); // Dark purple
+    vec3 hotColor = vec3(0.65, 0.54, 0.44);    // brand-tan
+    vec3 coolColor = vec3(0.21, 0.13, 0.13);  // brand-d-brown
     float colorMix = smoothstep(-1.0, 1.0, velocity);
     vColor = mix(coolColor, hotColor, colorMix);
 
@@ -134,7 +135,7 @@ const ConvectionSystem: React.FC = () => {
 export const ConvectionCellsScene: React.FC = () => {
   return (
     <Canvas camera={{ position: [0, 10, 15], fov: 60 }}>
-      <color attach="background" args={['#111118']} />
+      <color attach="background" args={['#0d0d0d']} />
       <ConvectionSystem />
       <OrbitControls />
     </Canvas>

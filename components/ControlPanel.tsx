@@ -15,7 +15,7 @@ interface ControlPanelProps {
 
 const Slider: React.FC<{ label: string; min: number; max: number; step: number; value: number; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; }> = ({ label, min, max, step, value, onChange }) => (
   <div className="flex flex-col space-y-2">
-    <label htmlFor={label} className="text-sm text-gray-400">{label}</label>
+    <label htmlFor={label} className="text-sm text-brand-tan/80">{label}</label>
     <input
       id={label}
       type="range"
@@ -24,9 +24,9 @@ const Slider: React.FC<{ label: string; min: number; max: number; step: number; 
       step={step}
       value={value}
       onChange={onChange}
-      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+      className="w-full h-2 bg-brand-m-brown rounded-lg appearance-none cursor-pointer accent-brand-red"
     />
-    <span className="text-center text-xs text-gray-300 font-mono">{Number(value).toFixed(4)}</span>
+    <span className="text-center text-xs text-brand-tan font-mono">{Number(value).toFixed(4)}</span>
   </div>
 );
 
@@ -40,8 +40,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   isLoadingExplanation 
 }) => {
   return (
-    <div className="bg-gray-900 p-4 rounded-lg space-y-4">
-      <h2 className="text-lg font-semibold text-cyan-400">Controls</h2>
+    <div className="bg-brand-d-brown p-4 rounded-lg space-y-4">
+      <h2 className="text-lg font-semibold text-brand-red">Controls</h2>
       
       {visualization === 'thermodynamics' && (
         <>
@@ -64,13 +64,13 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <div className="flex space-x-2">
             <button
               onClick={() => onThermoParamsChange({ isPaused: !thermoParams.isPaused })}
-              className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+              className="flex-1 bg-brand-red hover:bg-brand-red/90 text-white font-bold py-2 px-4 rounded-lg transition-colors"
             >
               {thermoParams.isPaused ? 'Resume' : 'Pause'}
             </button>
             <button
               onClick={() => onThermoParamsChange({ heat: 0.05 })}
-              className="flex-1 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+              className="flex-1 bg-brand-m-brown hover:bg-brand-m-brown/90 text-white font-bold py-2 px-4 rounded-lg transition-colors"
             >
               Reset
             </button>
@@ -78,7 +78,7 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           <button
             onClick={onExplain}
             disabled={isLoadingExplanation}
-            className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-fuchsia-800 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+            className="w-full bg-brand-red hover:bg-brand-red/90 text-white font-bold py-2 px-4 rounded-lg transition-colors disabled:bg-brand-red/50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             {isLoadingExplanation && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
             <span>Explain This Phenomenon</span>
@@ -108,20 +108,20 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
       )}
 
       {visualization === 'bz-reaction' && (
-          <div className="text-center bg-gray-800 p-3 rounded-md">
-            <p className="text-sm text-gray-300">Click and drag on the canvas to trigger new chemical waves and spirals.</p>
+          <div className="text-center bg-brand-m-brown p-3 rounded-md">
+            <p className="text-sm text-brand-tan">Click and drag on the canvas to trigger new chemical waves and spirals.</p>
           </div>
       )}
 
       {visualization === 'boids' && (
-        <div className="text-center bg-gray-800 p-3 rounded-md">
-          <p className="text-sm text-gray-300">Move your mouse to guide the predator sphere and watch the flock react.</p>
+        <div className="text-center bg-brand-m-brown p-3 rounded-md">
+          <p className="text-sm text-brand-tan">Move your mouse to guide the predator sphere and watch the flock react.</p>
         </div>
       )}
 
       {visualization === 'convection-cells' && (
-        <div className="text-center bg-gray-800 p-3 rounded-md">
-          <p className="text-sm text-gray-300">The simulation runs automatically. Pan and zoom to observe the emergent patterns.</p>
+        <div className="text-center bg-brand-m-brown p-3 rounded-md">
+          <p className="text-sm text-brand-tan">The simulation runs automatically. Pan and zoom to observe the emergent patterns.</p>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 
+
 import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
@@ -158,11 +159,11 @@ const BoidsSystem: React.FC = () => {
     <>
       <instancedMesh ref={meshRef} args={[undefined, undefined, BOID_COUNT]}>
         <coneGeometry args={[0.1, 0.5, 8]} />
-        <meshStandardMaterial color="#00ffff" />
+        <meshStandardMaterial color="#a78a70" />
       </instancedMesh>
       <mesh ref={predatorRef}>
         <sphereGeometry args={[0.5, 32, 32]} />
-        <meshStandardMaterial color="#ff4757" emissive="#ff4757" emissiveIntensity={0.5} />
+        <meshStandardMaterial color="#7c1f23" emissive="#7c1f23" emissiveIntensity={0.5} />
       </mesh>
     </>
   );
@@ -177,7 +178,7 @@ export const BoidsScene: React.FC = () => {
       <OrbitControls enabled={false} />
        <mesh>
         <boxGeometry args={[BOUNDS, BOUNDS, BOUNDS]} />
-        <meshBasicMaterial wireframe color="#4a5568" />
+        <meshBasicMaterial wireframe color="#59453c" />
       </mesh>
     </Canvas>
   );
